@@ -1,4 +1,14 @@
 <resources>
   <string name="app_name">Duolingo Word Search</string>
   <string name="next">Next</string>
+  <plurals name="translations_remaining">
+    <item quantity="zero">No translations remain.</item>
+    <item quantity="one">%d translation remains.</item>
+    <item quantity="other">%d translations remain.</item>
+  </plurals>
+  <plurals name="word_searches_remaining">
+    <item quantity="zero">No word searches remain.</item>
+    <item quantity="one">%d word searche remains.</item>
+    <item quantity="other">%d word searches remain.</item>
+  </plurals>
 </resources>

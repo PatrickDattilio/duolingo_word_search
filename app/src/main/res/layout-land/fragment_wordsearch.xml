@@ -30,15 +30,23 @@
       android:layout_height="match_parent"
       android:layout_gravity="center" />
 
+    <TextView
+      android:id="@+id/remaining"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="end|top"
+      android:alpha="0"
+      tools:alpha="1f"
+      tools:text="X Remaining" />
 
     <Button
       android:id="@+id/next"
       style="?android:attr/borderlessButtonStyle"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_gravity="right|center_vertical"
-      android:text="@string/next"
+      android:layout_gravity="end|center_vertical"
       android:alpha="0"
+      android:text="@string/next"
       tools:alpha="1f" />
   </FrameLayout>
 </LinearLayout>
