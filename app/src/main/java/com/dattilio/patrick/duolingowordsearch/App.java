@@ -8,6 +8,7 @@ import com.dattilio.patrick.duolingowordsearch.model.WordSearchDeserializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -17,8 +18,14 @@ public class App extends Application {
   @Override public void onCreate() {
     super.onCreate();
 
-    OkHttpClient client =
-        new OkHttpClient.Builder().addInterceptor(new DuolingoInterceptor()).build();
+    OkHttpClient.Builder builder =
+        new OkHttpClient.Builder().addInterceptor(new DuolingoInterceptor());
+    if (BuildConfig.DEBUG) {
+      HttpLoggingInterceptor httpLogger = new HttpLoggingInterceptor();
+      httpLogger.setLevel(HttpLoggingInterceptor.Level.BODY);
+      builder.addInterceptor(httpLogger);
+    }
+    OkHttpClient client = builder.build();
 
     Gson gson =
         new GsonBuilder().registerTypeAdapter(WordSearch.class, new WordSearchDeserializer())

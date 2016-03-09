@@ -1,6 +1,9 @@
 <resources>
   <string name="app_name">Duolingo Word Search</string>
   <string name="next">Next</string>
+  <string name="you_win">You win!</string>
+  <string name="play_again">Play Again</string>
+  <string name="loading">Loading</string>
   <plurals name="translations_remaining">
     <item quantity="zero">No translations remain.</item>
     <item quantity="one">%d translation remains.</item>

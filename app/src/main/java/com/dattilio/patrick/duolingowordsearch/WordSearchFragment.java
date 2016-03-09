@@ -1,6 +1,7 @@
 package com.dattilio.patrick.duolingowordsearch;
 
 import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -29,12 +31,16 @@ import rx.schedulers.Schedulers;
 
 public class WordSearchFragment extends Fragment {
 
+  public static final String FRAGMENT_WORDSEARCH = "FRAGMENT_WORDSEARCH";
+
   private static final String CURRENT_POSITION = "CURRENT_POSITION";
   private static final String WORDSEARCHES = "WORDSEARCHES";
   @Bind(R.id.board_view) WordSearchBoardView boardView;
   @Bind(R.id.source_word) TextView sourceWord;
   @Bind(R.id.remaining) TextView remaining;
   @Bind(R.id.next) Button nextButton;
+  @Bind(R.id.fragment_word_search_board_layout) LinearLayout boardLayout;
+  @Bind(R.id.fragment_word_search_loading_layout) LinearLayout loadingLayout;
 
   private int position = -1;
   private DisplayMetrics metrics;
@@ -42,7 +48,7 @@ public class WordSearchFragment extends Fragment {
   private WordSearchBoardView.OnWordSelectedListener selectedListener;
   private WordSearchBoardView.OnWordHighlightedListener highlightedListener;
   private float boardX;
-  private Animator.AnimatorListener animatorListener;
+  private Animator.AnimatorListener replaceBoardListener;
 
   @Override public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -50,17 +56,7 @@ public class WordSearchFragment extends Fragment {
       position = savedInstanceState.getInt(CURRENT_POSITION);
       wordSearches = savedInstanceState.getParcelableArrayList(WORDSEARCHES);
     } else {
-      DuolingoApi.get()
-          .getWordSearches()
-          .subscribeOn(Schedulers.io())
-          .observeOn(AndroidSchedulers.mainThread())
-          .subscribe(new Action1<ArrayList<WordSearch>>() {
-            @Override public void call(ArrayList<WordSearch> wordSearchList) {
-              wordSearches = wordSearchList;
-              position = 0;
-              setupWordSearch(wordSearches.get(position), boardView, sourceWord);
-            }
-          });
+      getWordSearches();
     }
   }
 
@@ -103,40 +99,23 @@ public class WordSearchFragment extends Fragment {
         //Remove the valid word from our translations. If we are out of translations, we should allow
         // the user to transition to the next WordSearch. If we are all out of WordSearches then they have won!
         wordSearches.get(position).translations.remove(boardWord.toString());
-        if (wordSearches.get(position).translations.isEmpty()) {
-          if (position == wordSearches.size() - 1) {
-            //Win
-          } else {
-            animateBoardStatus();
-          }
-        } else {
-          if (remaining.getAlpha() == 0) {
-            remaining.animate().alpha(1f).start();
-          }
-          int count = wordSearches.get(position).translations.size();
-          remaining.setText(
-              getResources().getQuantityString(R.plurals.translations_remaining, count, count));
-        }
+        setRemainingAndButtonStatus();
       }
     };
 
-    animatorListener = new Animator.AnimatorListener() {
-      @Override public void onAnimationStart(Animator animation) {
-      }
-
+    replaceBoardListener = new AnimatorListenerAdapter() {
       @Override public void onAnimationEnd(Animator animation) {
         boardView.clearBoard();
         position++;
         setupWordSearch(wordSearches.get(position), boardView, sourceWord);
         boardView.setX(metrics.widthPixels);
       }
-
-      @Override public void onAnimationCancel(Animator animation) {
-      }
-
-      @Override public void onAnimationRepeat(Animator animation) {
-      }
     };
+
+    if (wordSearches != null) {
+      loadingLayout.setVisibility(View.GONE);
+      boardLayout.setVisibility(View.VISIBLE);
+    }
     return view;
   }
 
@@ -159,8 +138,23 @@ public class WordSearchFragment extends Fragment {
     boardView.setOnWordHighlightedListener(highlightedListener);
     textView.setText(search.word);
     boardView.setLetterBoard(search.characterGrid);
-    if (search.translations.isEmpty()) {
-      nextButton.animate().alpha(1f).start();
+    setRemainingAndButtonStatus();
+  }
+
+  private void setRemainingAndButtonStatus() {
+    if (wordSearches.get(position).translations.isEmpty()) {
+      if (position == wordSearches.size() - 1) {
+        gameOver();
+      } else {
+        animateBoardStatus();
+      }
+    } else {
+      if (remaining.getAlpha() == 0) {
+        remaining.animate().alpha(1f).start();
+      }
+      int count = wordSearches.get(position).translations.size();
+      remaining.setText(
+          getResources().getQuantityString(R.plurals.translations_remaining, count, count));
     }
   }
 
@@ -168,13 +162,14 @@ public class WordSearchFragment extends Fragment {
     ObjectAnimator nextButtonAlphaOut = ObjectAnimator.ofFloat(nextButton, "alpha", 0);
     ObjectAnimator remainingAlphaOut = ObjectAnimator.ofFloat(remaining, "alpha", 0);
     ObjectAnimator boardExit = ObjectAnimator.ofFloat(boardView, "x", -boardView.getWidth());
-    boardExit.addListener(animatorListener);
+    boardExit.addListener(replaceBoardListener);
 
     AnimatorSet out = new AnimatorSet();
     out.playTogether(nextButtonAlphaOut, remainingAlphaOut, boardExit);
 
     Animator boardEnter = ObjectAnimator.ofFloat(boardView, "x", boardX);
 
+    nextButton.setVisibility(View.GONE);
     AnimatorSet animatorSet = new AnimatorSet();
     animatorSet.playSequentially(out, boardEnter);
     animatorSet.start();
@@ -183,23 +178,11 @@ public class WordSearchFragment extends Fragment {
   private void animateBoardStatus() {
 
     ObjectAnimator remainingAlphaOut = ObjectAnimator.ofFloat(remaining, "alpha", 0);
-    remainingAlphaOut.addListener(new Animator.AnimatorListener() {
-      @Override public void onAnimationStart(Animator animation) {
-
-      }
-
+    remainingAlphaOut.addListener(new AnimatorListenerAdapter() {
       @Override public void onAnimationEnd(Animator animation) {
         int count = wordSearches.size() - position;
         remaining.setText(
             getResources().getQuantityString(R.plurals.word_searches_remaining, count, count));
-      }
-
-      @Override public void onAnimationCancel(Animator animation) {
-
-      }
-
-      @Override public void onAnimationRepeat(Animator animation) {
-
       }
     });
 
@@ -209,8 +192,45 @@ public class WordSearchFragment extends Fragment {
     AnimatorSet alphaIn = new AnimatorSet();
     alphaIn.playTogether(nextButtonAlphaIn, remainingAlphaIn);
 
+    nextButton.setVisibility(View.VISIBLE);
     AnimatorSet set = new AnimatorSet();
     set.playSequentially(remainingAlphaOut, alphaIn);
     set.start();
+  }
+
+  private void gameOver() {
+    getActivity().getSupportFragmentManager()
+        .beginTransaction()
+        .setCustomAnimations(R.anim.enter_from_right, R.anim.exit_to_left)
+        .replace(R.id.frame, new GameOverFragment(), GameOverFragment.FRAGMENT_GAME_OVER)
+        .commit();
+  }
+
+  public void getWordSearches() {
+    DuolingoApi.get()
+        .getWordSearches()
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<ArrayList<WordSearch>>() {
+          @Override public void call(ArrayList<WordSearch> wordSearchList) {
+            wordSearches = wordSearchList;
+            position = 0;
+            setupWordSearch(wordSearches.get(position), boardView, sourceWord);
+
+            ObjectAnimator hideLoading = ObjectAnimator.ofFloat(loadingLayout, "alpha", 0);
+            final ObjectAnimator showBoard = ObjectAnimator.ofFloat(boardLayout, "alpha", 1f);
+            showBoard.addListener(new AnimatorListenerAdapter() {
+              @Override public void onAnimationStart(Animator animation) {
+                boardLayout.setAlpha(0);
+                boardLayout.setVisibility(View.VISIBLE);
+                super.onAnimationStart(animation);
+              }
+            });
+
+            AnimatorSet hideLoadingShowBoard = new AnimatorSet();
+            hideLoadingShowBoard.playSequentially(hideLoading, showBoard);
+            hideLoadingShowBoard.start();
+          }
+        });
   }
 }
