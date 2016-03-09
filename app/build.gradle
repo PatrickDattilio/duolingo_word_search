@@ -1,15 +1,13 @@
 buildscript {
   repositories {
-    mavenCentral()
+    jcenter()
   }
 
   dependencies {
-    classpath 'me.tatarka:gradle-retrolambda:3.3.0-beta4'
   }
 }
 
 apply plugin: 'com.android.application'
-apply plugin: 'me.tatarka.retrolambda'
 
 android {
   compileSdkVersion 23
@@ -44,4 +42,5 @@ dependencies {
 
   testCompile 'junit:junit:4.12'
   testCompile 'org.mockito:mockito-core:2.0.43-beta'
+  testCompile 'com.squareup.okhttp3:mockwebserver:3.0.1'
 }

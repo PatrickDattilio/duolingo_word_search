@@ -1,30 +1,51 @@
 package com.dattilio.patrick.duolingowordsearch.model;
 
 import java.io.IOException;
-import okhttp3.Interceptor;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class DuolingoInterceptorTest {
 
-  @Test public void interceptorTest() throws IOException {
-    Interceptor interceptor = new DuolingoInterceptor();
-    Interceptor.Chain chain = mock(Interceptor.Chain.class);
-    Request request = mock(Request.class);
-    Response mockResponse = mock(Response.class);
-    ResponseBody responseBody = mock(ResponseBody.class);
+  public final MockWebServer server = new MockWebServer();
+  private final DuolingoInterceptor interceptor = new DuolingoInterceptor();
+  private OkHttpClient client;
+  private String host;
+  private HttpUrl url;
 
-    when(chain.request()).thenReturn(request);
-    when(chain.proceed(request)).thenReturn(mockResponse);
-    when(mockResponse.body()).thenReturn(responseBody);
-    when(responseBody.string()).thenReturn("");
-    Response response = interceptor.intercept(chain);
+  @Before public void setUp() {
+    client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
+
+    host = server.getHostName() + ":" + server.getPort();
+    url = server.url("/");
+  }
+
+  @Test public void interceptorEmptyTest() throws IOException {
+    server.enqueue(new MockResponse().setBody(""));
+    Response response = client.newCall(request().build()).execute();
     assertEquals("[]", response.body().string());
+  }
+
+  @Test public void interceptorSingleTest() throws IOException {
+    server.enqueue(new MockResponse().setBody("{}"));
+    Response response = client.newCall(request().build()).execute();
+    assertEquals("[{}]", response.body().string());
+  }
+
+  @Test public void interceptorDoubleTest() throws IOException {
+    server.enqueue(new MockResponse().setBody("{}\n{}"));
+    Response response = client.newCall(request().build()).execute();
+    assertEquals("[{},{}]", response.body().string());
+  }
+
+  private Request.Builder request() {
+    return new Request.Builder().url(url);
   }
 }
