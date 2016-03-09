@@ -32,7 +32,6 @@ android {
 
 dependencies {
   compile fileTree(dir: 'libs', include: ['*.jar'])
-  testCompile 'junit:junit:4.12'
   compile 'com.android.support:appcompat-v7:23.2.0'
   compile 'com.squareup.retrofit2:retrofit:2.0.0-beta4'
   compile 'com.squareup.retrofit2:converter-gson:2.0.0-beta4'
@@ -42,4 +41,7 @@ dependencies {
   compile 'io.reactivex:rxjava:1.1.1'
   compile 'io.reactivex:rxandroid:1.1.0'
   compile project(':boardview')
+
+  testCompile 'junit:junit:4.12'
+  testCompile 'org.mockito:mockito-core:2.0.43-beta'
 }
