@@ -127,8 +127,10 @@ public class WordSearchFragment extends Fragment {
   }
 
   @Override public void onSaveInstanceState(Bundle outState) {
-    outState.putInt(CURRENT_POSITION, position);
-    outState.putParcelableArrayList(WORDSEARCHES, wordSearches);
+    if (wordSearches != null) {
+      outState.putParcelableArrayList(WORDSEARCHES, wordSearches);
+      outState.putInt(CURRENT_POSITION, position);
+    }
     super.onSaveInstanceState(outState);
   }
 
@@ -160,6 +162,12 @@ public class WordSearchFragment extends Fragment {
 
   private void replaceBoard() {
     ObjectAnimator nextButtonAlphaOut = ObjectAnimator.ofFloat(nextButton, "alpha", 0);
+    nextButtonAlphaOut.addListener(new AnimatorListenerAdapter() {
+      @Override public void onAnimationStart(Animator animation) {
+        nextButton.setVisibility(View.GONE);
+        super.onAnimationStart(animation);
+      }
+    });
     ObjectAnimator remainingAlphaOut = ObjectAnimator.ofFloat(remaining, "alpha", 0);
     ObjectAnimator boardExit = ObjectAnimator.ofFloat(boardView, "x", -boardView.getWidth());
     boardExit.addListener(replaceBoardListener);
@@ -168,8 +176,6 @@ public class WordSearchFragment extends Fragment {
     out.playTogether(nextButtonAlphaOut, remainingAlphaOut, boardExit);
 
     Animator boardEnter = ObjectAnimator.ofFloat(boardView, "x", boardX);
-
-    nextButton.setVisibility(View.GONE);
     AnimatorSet animatorSet = new AnimatorSet();
     animatorSet.playSequentially(out, boardEnter);
     animatorSet.start();
@@ -187,12 +193,17 @@ public class WordSearchFragment extends Fragment {
     });
 
     ObjectAnimator nextButtonAlphaIn = ObjectAnimator.ofFloat(nextButton, "alpha", 1f);
+    nextButtonAlphaIn.addListener(new AnimatorListenerAdapter() {
+      @Override public void onAnimationStart(Animator animation) {
+        nextButton.setVisibility(View.VISIBLE);
+        super.onAnimationStart(animation);
+      }
+    });
     ObjectAnimator remainingAlphaIn = ObjectAnimator.ofFloat(remaining, "alpha", 1f);
 
     AnimatorSet alphaIn = new AnimatorSet();
     alphaIn.playTogether(nextButtonAlphaIn, remainingAlphaIn);
 
-    nextButton.setVisibility(View.VISIBLE);
     AnimatorSet set = new AnimatorSet();
     set.playSequentially(remainingAlphaOut, alphaIn);
     set.start();
@@ -206,30 +217,32 @@ public class WordSearchFragment extends Fragment {
         .commit();
   }
 
-  public void getWordSearches() {
+  private void getWordSearches() {
     DuolingoApi.get()
         .getWordSearches()
         .subscribeOn(Schedulers.io())
         .observeOn(AndroidSchedulers.mainThread())
         .subscribe(new Action1<ArrayList<WordSearch>>() {
           @Override public void call(ArrayList<WordSearch> wordSearchList) {
-            wordSearches = wordSearchList;
-            position = 0;
-            setupWordSearch(wordSearches.get(position), boardView, sourceWord);
+            if (getActivity() != null) {
+              wordSearches = wordSearchList;
+              position = 0;
+              setupWordSearch(wordSearches.get(position), boardView, sourceWord);
 
-            ObjectAnimator hideLoading = ObjectAnimator.ofFloat(loadingLayout, "alpha", 0);
-            final ObjectAnimator showBoard = ObjectAnimator.ofFloat(boardLayout, "alpha", 1f);
-            showBoard.addListener(new AnimatorListenerAdapter() {
-              @Override public void onAnimationStart(Animator animation) {
-                boardLayout.setAlpha(0);
-                boardLayout.setVisibility(View.VISIBLE);
-                super.onAnimationStart(animation);
-              }
-            });
+              ObjectAnimator hideLoading = ObjectAnimator.ofFloat(loadingLayout, "alpha", 0);
+              final ObjectAnimator showBoard = ObjectAnimator.ofFloat(boardLayout, "alpha", 1f);
+              showBoard.addListener(new AnimatorListenerAdapter() {
+                @Override public void onAnimationStart(Animator animation) {
+                  boardLayout.setAlpha(0);
+                  boardLayout.setVisibility(View.VISIBLE);
+                  super.onAnimationStart(animation);
+                }
+              });
 
-            AnimatorSet hideLoadingShowBoard = new AnimatorSet();
-            hideLoadingShowBoard.playSequentially(hideLoading, showBoard);
-            hideLoadingShowBoard.start();
+              AnimatorSet hideLoadingShowBoard = new AnimatorSet();
+              hideLoadingShowBoard.playSequentially(hideLoading, showBoard);
+              hideLoadingShowBoard.start();
+            }
           }
         });
   }
