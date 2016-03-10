@@ -14,16 +14,13 @@ import static org.junit.Assert.assertEquals;
 
 public class DuolingoInterceptorTest {
 
-  public final MockWebServer server = new MockWebServer();
+  private final MockWebServer server = new MockWebServer();
   private final DuolingoInterceptor interceptor = new DuolingoInterceptor();
   private OkHttpClient client;
-  private String host;
   private HttpUrl url;
 
   @Before public void setUp() {
     client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
-
-    host = server.getHostName() + ":" + server.getPort();
     url = server.url("/");
   }
 

@@ -16,11 +16,11 @@ public class WordSearch implements Parcelable {
           return new WordSearch[size];
         }
       };
-  public final @SerializedName("source_language") String sourceLanguage;
-  public final @SerializedName("target_language") String targetLanguage;
   public final String word;
   public final @SerializedName("character_grid") String[][] characterGrid;
   public final @SerializedName("word_locations") List<String> translations;
+  private final @SerializedName("source_language") String sourceLanguage;
+  private final @SerializedName("target_language") String targetLanguage;
 
   public WordSearch(String sourceLanguage, String targetLanguage, String word,
       String[][] characterGrid, List<String> translations) {
