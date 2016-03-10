@@ -4,6 +4,42 @@
   <string name="you_win">You win!</string>
   <string name="play_again">Play Again</string>
   <string name="loading">Loading</string>
+  <string name="about_data">
+    <![CDATA[
+    <h1>About</h1>
+    Created by Patrick Dattilio<br/>
+    <h2>Open Source</h2>
+    <p>This app uses the follow open source libraries: <br/>
+      Retrofit by Square<br/>
+      https://github.com/square/retrofit<br/><br/>
+      Retrofit Gson Converter by Square<br/>
+      https://github.com/square/retrofit/tree/master/retrofit-converters/gson<br/><br/>
+      Retrofit RxJava Adapter by Square<br/>
+      https://github.com/square/retrofit/tree/master/retrofit-adapters/rxjava<br/><br/>
+      MockWebServer by Square<br/>
+      https://github.com/square/okhttp/tree/master/mockwebserver<br/><br/>
+      OkHttp Logging Interceptor by Square<br/>
+      https://github.com/square/okhttp/tree/master/okhttp-logging-interceptor<br/><br/>
+      Butterknife by Jake Wharton<br/>
+      https://github.com/JakeWharton/butterknife<br/><br/>
+      Gson by Google<br/>
+      https://github.com/google/gson<br/><br/>
+      RxJava by ReactiveX<br/>
+      https://github.com/ReactiveX/RxJava<br/><br/>
+      RxAndroid by ReactiveX<br/>
+      https://github.com/ReactiveX/RxAndroid<br/><br/>
+      MaterialProgressBar by Zhang Hai<br/>
+      https://github.com/DreaminginCodeZH/MaterialProgressBar<br/><br/>
+      BoardView Ricardo Lage<br/>
+      https://github.com/riclage/boardview<br/><br/>
+      JUnit<br/>
+      https://github.com/junit-team/junit<br/><br/>
+      Mockito<br/>
+      https://github.com/mockito/mockito
+    </p>
+    ]]>
+  </string>
+  <string name="about">About</string>
   <plurals name="translations_remaining">
     <item quantity="zero">No translations remain.</item>
     <item quantity="one">%d translation remains.</item>
